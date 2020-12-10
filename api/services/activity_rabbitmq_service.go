@@ -1,15 +1,18 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/garcialuis/ActivityCollector/api/models"
+	"github.com/jinzhu/gorm"
 	"github.com/streadway/amqp"
 )
 
-func RunConsumer() {
+func RunConsumer(db *gorm.DB) {
 	fmt.Println("Starting RabbitMQ consumer...")
 	time.Sleep(7 * time.Second)
 
@@ -46,7 +49,18 @@ func RunConsumer() {
 
 	go func() {
 		for d := range msgs {
+
+			activityMsg := models.Activity{}
+
 			log.Printf("Received a message: %s", d.Body)
+
+			err := json.Unmarshal(d.Body, &activityMsg)
+			failOnError(err, "Failed to unmarshall message received")
+
+			newActivityRecord, err := StoreActivityRecord(db, &activityMsg)
+			failOnError(err, "Unable to store new activity message")
+
+			fmt.Println("New Activity record saved: ", newActivityRecord)
 		}
 	}()
 

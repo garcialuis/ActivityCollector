@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/garcialuis/ActivityCollector/api/models"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 
@@ -31,7 +32,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 		}
 	}
 
-	// server.DB.Debug().AutoMigrate(&models.Activity{})
+	server.DB.Debug().AutoMigrate(&models.Activity{})
 
 	server.Router = mux.NewRouter()
 

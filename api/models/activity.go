@@ -41,10 +41,21 @@ func (activity *Activity) GetActivitySample(origin uint64) (*Activity, error) {
 // GetActivity method retrieves activity data given an originID
 func (activity *Activity) GetActivity(db *gorm.DB, origin uint64) (*Activity, error) {
 
-	err := db.Debug().Model(&Activity{}).Where("originID = ?", origin).Take(&activity).Error
+	err := db.Debug().Model(&Activity{}).Where("origin_id = ?", origin).Take(&activity).Error
 	if err != nil {
 		return &Activity{}, err
 	}
 
 	return activity, nil
+}
+
+func (activity *Activity) SaveActivity(db *gorm.DB) (*Activity, error) {
+	var err error
+
+	err = db.Debug().Create(&activity).Error
+	if err != nil {
+		return &Activity{}, err
+	}
+
+	return activity, err
 }

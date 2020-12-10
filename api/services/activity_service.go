@@ -18,3 +18,9 @@ func GetActivity(db *gorm.DB, originID uint64) (*models.Activity, error) {
 
 	return activity.GetActivity(db, originID)
 }
+
+func StoreActivityRecord(db *gorm.DB, newActivity *models.Activity) (*models.Activity, error) {
+
+	// TODO: Add validation checks to make sure required fields are present
+	return newActivity.SaveActivity(db)
+}
