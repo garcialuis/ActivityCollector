@@ -1,0 +1,91 @@
+package services
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/garcialuis/ActivityCollector/api/models"
+	"github.com/jinzhu/gorm"
+	"github.com/streadway/amqp"
+)
+
+func RunConsumer(db *gorm.DB) {
+	fmt.Println("Starting RabbitMQ consumer...")
+	time.Sleep(7 * time.Second)
+
+	conn, err := amqp.Dial(brokerAddr())
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		queue(), // name
+		true,    // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	failOnError(err, "Failed to register a consumer")
+
+	forever := make(chan bool)
+
+	go func() {
+		for d := range msgs {
+
+			activityMsg := models.Activity{}
+
+			log.Printf("Received a message: %s", d.Body)
+
+			err := json.Unmarshal(d.Body, &activityMsg)
+			failOnError(err, "Failed to unmarshall message received")
+
+			newActivityRecord, err := StoreActivityRecord(db, &activityMsg)
+			failOnError(err, "Unable to store new activity message")
+
+			fmt.Println("New Activity record saved: ", newActivityRecord)
+		}
+	}()
+
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
+}
+
+func brokerAddr() string {
+	brokerAddr := os.Getenv("BROKER_ADDR")
+	if len(brokerAddr) == 0 {
+		brokerAddr = "amqp://guest:guest@localhost:5672/"
+	}
+	return brokerAddr
+}
+
+func queue() string {
+	queue := os.Getenv("QUEUE")
+	if len(queue) == 0 {
+		queue = "default-queue"
+	}
+	return queue
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
+}

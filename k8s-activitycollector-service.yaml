@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: activitycollector
+  labels:
+    app: activitycollector
+    tier: Service
+spec:
+  type: NodePort
+  ports:
+  - port: 8086
+    nodePort: 32711
+  selector:
+    app: activitycollector
