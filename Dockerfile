@@ -1,15 +1,14 @@
-FROM golang:1.14-alpine
+FROM golang:1.14-alpine AS build
 
-RUN apk update && apk upgrade && apk add --no-cache bash git
-
+RUN apk --no-cache add gcc g++ make git
+WORKDIR /go/src/app
+COPY . .
 RUN go get ./...
+RUN GOOS=linux go build -o ./bin/activitycollector
 
-ENV SOURCES /home/luis/Documents/Projects/GoLang/ActivityCollector/
-COPY . ${SOURCES}
-
-RUN cd ${SOURCES} && CGO_ENABLED=0 go build
-
+FROM alpine:3.9
+RUN apk --no-cache add ca-certificates
+WORKDIR /usr/bin
+COPY --from=build /go/src/app/bin /go/bin
 ENV BROKER_ADDR amqp://guest:guest@localhost:5672/
-
-WORKDIR ${SOURCES}
-CMD ${SOURCES}ActivityCollector
+ENTRYPOINT /go/bin/activitycollector
