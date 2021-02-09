@@ -22,7 +22,7 @@ func (activity *ActivityCollector) GetActivity(originID uint64) (Activity client
 		return Activity
 	}
 
-	base.Path += strconv.FormatUint(originID, 64)
+	base.Path += strconv.FormatUint(originID, 10)
 
 	resp, err := http.Get(base.String())
 	if err != nil {
