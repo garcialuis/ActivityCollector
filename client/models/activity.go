@@ -9,3 +9,5 @@ type Activity struct {
 	ExerciseMinutes uint16 `json:"exerciseMinutes" gorm:"not null"`
 	CaloriesBurned  uint16 `json:"caloriesBurned" gorm:"not null"`
 }
+
+type Activities []Activity
