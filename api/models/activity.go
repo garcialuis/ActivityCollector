@@ -17,6 +17,8 @@ type Activity struct {
 	CaloriesBurned  float64 `json:"caloriesBurned" gorm:"not null"`
 }
 
+type Activities []Activity
+
 func (activity *Activity) GetActivitySample(origin uint64) (*Activity, error) {
 
 	now := time.Now()
@@ -38,10 +40,10 @@ func (activity *Activity) GetActivitySample(origin uint64) (*Activity, error) {
 	return &Activity{}, errors.New("Error: data not found")
 }
 
-// GetActivity method retrieves activity data given an originID
-func (activity *Activity) GetActivity(db *gorm.DB, origin uint64) (*Activity, error) {
+// GetActivity method retrieves activity data given an originID and activityID
+func (activity *Activity) GetActivity(db *gorm.DB, originID uint64, activityID uint64) (*Activity, error) {
 
-	err := db.Debug().Model(&Activity{}).Where("origin_id = ?", origin).Take(&activity).Error
+	err := db.Debug().Model(&Activity{}).Where("id = ? AND origin_id = ?", activityID, originID).Take(&activity).Error
 	if err != nil {
 		return &Activity{}, err
 	}
@@ -58,4 +60,25 @@ func (activity *Activity) SaveActivity(db *gorm.DB) (*Activity, error) {
 	}
 
 	return activity, err
+}
+
+func (activities *Activities) GetActivitiesInRange(db *gorm.DB, originID uint64, startUnixTime int64, endUnixTime int64) (*Activities, error) {
+
+	err := db.Debug().Model(&Activity{}).Where("origin_id = ? AND epochtime BETWEEN ? AND ?", originID, startUnixTime, endUnixTime).Find(&activities).Error
+
+	if err != nil {
+		return &Activities{}, err
+	}
+
+	return activities, nil
+}
+
+func (activities *Activities) GetActivities(db *gorm.DB, originID uint64) (*Activities, error) {
+
+	err := db.Debug().Model(&Activity{}).Where("origin_id = ?", originID).Find(&activities).Error
+	if err != nil {
+		return &Activities{}, err
+	}
+
+	return activities, nil
 }
