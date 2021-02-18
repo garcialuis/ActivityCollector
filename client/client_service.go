@@ -20,8 +20,12 @@ type ActivityCollector struct {
 type ActivityCollectorClient interface {
 	// configure any variables needed for the client to work
 	Configure()
-	// GetActivity by originID
-	GetActivity(originID uint64) client_models.Activity
+	// GetActivity by originID and activityID
+	GetActivity(originID uint64, activityID uint64) client_models.Activity
+	// GetActivities by originID
+	GetActivities(originID uint64) client_models.Activities
+	// GetActivities by originID and within a time frame
+	GetActivitiesInRange(originID uint64, starttime uint64, endtime uint64) client_models.Activities
 }
 
 // Configure method gets client config details from environment
