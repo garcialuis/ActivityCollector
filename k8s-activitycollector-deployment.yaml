@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: activitycollector
-        image: activitycollector:0.0.1
+        image: garcialuiz/activitycollector:0.0.2
         ports:
         - containerPort: 8086
         env:
